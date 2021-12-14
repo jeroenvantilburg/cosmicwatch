@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>CosmicWatch readout</title>
+  <meta charset="UTF-8">
+  <meta name="description" content="Unofficial CosmicWatch readout page">
+  <meta name="keywords" content="muons, cosmic rays, desktop particle detector, scintillator, SiPM">
+  <meta name="author" content="Jeroen van Tilburg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta property="og:image" content="https://jeroenvantilburg.nl/cosmicwatch/img/screenshot.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://jeroenvantilburg.nl/cosmicwatch/" />
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="manifest" href="site.webmanifest">
+  <link rel="mask-icon" href="safari-pinned-tab.svg" color="#3a77ed">
+  <link rel="shortcut icon" href="favicon.ico">
+  <meta name="msapplication-TileColor" content="#2d89ef">
+  <meta name="msapplication-config" content="browserconfig.xml">
+  <meta name="theme-color" content="#ffffff">  
+  <link rel="stylesheet" type="text/css" href="style.css" media="screen,projection" />
+  <link rel="stylesheet" 
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <base target="_blank">
+</head>
+<body>
+  <div class="header">
+   <div class="title">
+     <i class="fa fa-globe"></i> <b>CosmicWatch</b>
+    </div>
+    <div class="subtitle">
+      <i>Unofficial readout page</i> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      <a href="http://www.cosmicwatch.lns.mit.edu/">(Link to official MIT-page)</a>
+    </div>
+  </div>
+
+  <div class="dataSelection">
+    Add data: 
+    <button id="connect" class="main-button"><i class="fa fa-usb"></i> Connect USB</button>
+    <button id="import" class="main-button"><i class="fa fa-upload"></i> Import file</button>
+    <input id="input" type="file" accept="text/plain,text/csv,.csv,.tsv,.txt" hidden>
+    <nobr id="statusMsg"></nobr>
+  </div>
+  
+  <div id="settingsModal" class="modal">
+    <div class="modal-content modal-small"> <span class="close">&times;</span>
+      <center>
+        <h3>Histogram settings</h3>
+        <table>
+          <tr><th colspan="2">x axis</th></tr> 
+          <tr>
+            <td>Number of bins:</td>
+            <td><input id="nBins" type="number"></input></td>
+          </tr>
+          <tr>
+            <td>Minimum:</td>
+            <td><input id="minAxis" type="number"></input></td>
+          </tr>
+          <tr> 
+            <td>Maximum:</td>
+            <td><input id="maxAxis" type="number"></input></td> 
+          </tr>
+          </tr>
+        </table>
+        <br/>
+        <table>
+          <tr><th colspan="2">y axis</th></tr> 
+          <tr>
+            <td>scale:</td>
+            <td>
+              <label class="container">linear
+                <input type="radio" name="loglinear" id="linear"> </input>
+              </label>
+              <label class="container">logarithmic
+                <input type="radio" name="loglinear" id="logarithmic"></input>
+              </label>
+            </td>
+          </tr>
+        </table>
+        <br/>
+        <button id="applySettings">Apply</button></br>
+      </center>
+    </div>
+  </div>
+
+ <table id="summaryTable" style="border-spacing: 1px;">
+    <tr id="data">
+      <td>Data:</td>
+    </tr>
+    <tr id="device">
+      <td>Device:</td>
+    </tr>
+    <tr id="nEvents">
+      <td>Number of events:</td>
+    </tr>
+    <tr id="ardtime">
+      <td>Total time:</td>
+    </tr>
+    <tr id="deadtime">
+      <td>Total deadtime:</td>
+    </tr>
+    <tr id="uptime">
+      <td>Total uptime:</td>
+    </tr>
+    <tr id="rate">
+      <td>Total rate:</td>
+    </tr>
+    <tr id="ampl">
+      <td>Mean peak height:</td>
+    </tr>
+    <tr id="temp">
+      <td>Mean temperature:</td>
+    </tr>
+    <tr id="control">
+      <td></td>
+    </tr>
+  </table>
+
+  <br/>
+
+  <div class="chart-container">
+    <div id="adcChart" class="row" data-highcharts-chart="4"></div><br/>
+    <div id="amplChart" class="row" data-highcharts-chart="4"></div><br/>
+  </div>
+  <div class="chart-container">
+    <div id="rateChart" class="row" data-highcharts-chart="4"></div><br/>
+    <div id="dtChart" class="row" data-highcharts-chart="4"></div><br/>
+  </div>
+
+  <div id="logFiles"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://code.highcharts.com/highcharts.js"></script>
+  <script src="http://code.highcharts.com/modules/exporting.js"></script>
+  <script src="CWreader.js"></script>
+  <noscript>Your browser does not support JavaScript!</noscript>
+  
+</body>
+</html>
+
