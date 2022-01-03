@@ -192,6 +192,7 @@
 
     // Create a new hits container and add to the series
     let i = addData( file.name );
+    addColumn( dataCont[i] ); // Add an extra column to the summary table
 
     // Loop over the lines in the text file
     let text = await file.text();
@@ -221,13 +222,10 @@
   function addData( name ){
     let index = dataCont.length;
     // Create a new data item and add to the container
-    let dataItem = { name: name, device: "", hits: [], header: "",
+    let dataItem = { name: name, device: "", hits: [], header: "", 
                      meanAmpl: 0, meanADC: 0, meanTemp: 0,
                      port: null, reader: null, inputDone: null, playSound: false};
     dataCont.push(dataItem);
-
-    // Add an extra column to the summary table
-    addColumn( name );
 
     // Add a textarea to show the log file
     $("#logFiles").append( '<textarea hidden readonly id="logFile_n'+ index 
@@ -238,30 +236,31 @@
   }
 
   // Add an extra column to the summary table
-  function addColumn(name) {
+  function addColumn( data ) {
+    let name = data.name;
     let iter = dataCont.length-1;
     $('#summaryTable').find('tr').each(function(){
       let row = $(this);
       let content = "";
       if( row.index() === 0 ) { 
-        content += '<input id="dataname'+iter+'" style="width: 150px;" value="';
+        content += '<input id="dataname'+iter+'" style="width:125px;" value="';
         content += name+ '" ></input>';
         content += '<span title="Remove data" id="remove'+
                     iter+'" class="close">&times;</span>';
       }
-      if( this.id == "control" && name.startsWith("usb")) {
+      if( this.id == "control" && data.port ) {
         content += '<button title="Play sound on event" id="sound' + iter
                    +'"><i class="fa fa-bell-slash"></i></button>';
         content += '<button title="Stop data taking" id="stop' + iter
                    +'"><i class="fa fa-stop"></i></button>';
-        content += '<button title="Export data as text file" id="export' + iter 
-                    + '"><i class="fa fa-download"></i></button>';
       }
       if( this.id == "control") {
+        content += '<button title="Export data as text file" id="export' + iter 
+                    + '"><i class="fa fa-download"></i></button>';
         content += '<button title="Show/hide raw data" id="showLog'+iter
         +'"><i class="fa fa-eye-slash"></i></button>';
       }
-      row.append('<td id="'+this.id+"_n"+iter+'">'+content+'</td>');
+      row.append('<td style="width:180px;" id="'+this.id+"_n"+iter+'">'+content+'</td>');
     });
 
     // Add event listeners for the buttons and the data name field
@@ -312,6 +311,7 @@
 
     // Clear data and remove from charts
     dataCont[i].hits = [];
+    dataCont[i].name = "Removed";
     for (chartName in charts) {
       let chart = charts[chartName];
       chart.series[i].setData([],true,true);
@@ -320,6 +320,7 @@
     $('#summaryTable').find('td').each(function(){
       if( this.id.endsWith("n"+i) ) $(this).remove();
     });
+    $("#logFile_n"+i).hide(); 
   }
 
 /* ======= DATA PROCESSING SECTION =============
@@ -341,7 +342,7 @@
     // After header, if line does not start with a number assume it contains device name
     if( isNaN(line[0]) && data.header != "") {
       //if( line.startsWith("Device") || prevLineWasComment ) {
-      data.device = line.split(" ").pop();
+      data.device = line.split(" ").pop().trim();
       // Add the device name to the data name
       if( data.port ) {
         $("#dataname"+iSeries).val( data.name + "_" + 
@@ -358,7 +359,7 @@
 
     // TODO: Add more formats...
     // Guess the format
-    if( items.length === 9 ) { // With computer time/date
+    if( items.length === 8 || items.length === 9 ) { // With computer time/date
       hits.push( { time:     items[0] + " " + items[1],
                    index:    parseInt(   items[2] ), 
                    ardTime:  parseFloat( items[3] ) ,
@@ -368,7 +369,7 @@
                    temp:     parseFloat( items[7]) });
       hitAdded = true;
     } else if ( items.length === 6 ) { // Without computer time/date
-      hits.push( { time:     getFormattedDate(), 
+      hits.push( { time:     data.port ? getFormattedDate() : "", 
                    index:    parseInt(   items[0] ), 
                    ardTime:  parseFloat( items[1] ) ,
                    adc:      parseFloat( items[2] ),
@@ -385,16 +386,21 @@
     }
 
     // update mean values
-    if( hitAdded ) {
-      if( data.playSound ) beep(10,2500);
-      let hit = hits.at(-1);
-      let n = hit.index;
-      data.meanADC  += (hit.adc  - data.meanADC ) / n;
-      data.meanAmpl += (hit.ampl - data.meanAmpl) / n;
-      data.meanTemp += (hit.temp - data.meanTemp) / n;
-    }
-
+    if( hitAdded ) updateAverages( iSeries );
   }
+
+
+  // update mean values
+  function updateAverages( iSeries ) {
+    let data = dataCont[iSeries];
+    if( data.playSound ) beep(10,2500);
+    let hit = data.hits.at(-1);
+    let n = data.hits.length;
+    data.meanADC  += (hit.adc  - data.meanADC ) / n;
+    data.meanAmpl += (hit.ampl - data.meanAmpl) / n;
+    data.meanTemp += (hit.temp - data.meanTemp) / n;    
+  }
+
 
   // Update the summary table
   function updateRate( iSeries ) {
@@ -402,7 +408,7 @@
     let lastHit = dataItem.hits.at(-1);
     let nEvents = dataItem.hits.length;    
     let ardTime = ( dataItem.t0 ) ? 
-                  (performance.now() - dataItem.t0) : lastHit.ardTime;
+                  (performance.now() - dataItem.t0) : ((lastHit) ? lastHit.ardTime : 0.0);
     ardTime *= 0.001;
     let deadTime = (lastHit) ? lastHit.deadTime*0.001 : 0.0;
 
@@ -461,6 +467,7 @@
         portNames.push(portName);
         let i = addData( portName );
         dataCont[i].port = port;
+        addColumn( dataCont[i] ); // Add an extra column to the summary table
         // Set the t0. 1600 ms is the startup time for the CosmicWatch arduino
         dataCont[i].t0 = performance.now() + 5150; 
         addSeriesToCharts( portName );
@@ -548,6 +555,170 @@
     return;
   }
 
+/* ======== COINCIDENCE SECTION ================
+   Finde coincidence hits in two data sets
+   ============================================= */
+
+  // When coincidence button is clicked show the options 
+  $("#coincidence").click( () => {
+    if( dataCont.length < 2 ) {
+      alert("At least two data sets are required to find coincidences.");
+      return;
+    }
+
+    $('#cData1').empty();
+    $('#cData2').empty();
+    $.each(dataCont, function (i, item) {
+      if( item.name !== "Removed") {
+        $('#cData1').append($('<option>', { value: i, text: item.name }));
+        $('#cData2').append($('<option>', { value: i, text: item.name }));
+      }
+    });
+    $('#cData1 option[value=0]').attr("selected", "selected");
+    $('#cData2 option[value=1]').attr("selected", "selected");
+
+    showModal("coincidenceModal");
+  });
+
+  // Find coincidences
+  $("#applyCoincidence").click( function() {
+
+    // Close the window
+    $(this).parent().parent().parent().toggle()
+
+    // Settings
+    let timeWindow = parseFloat($("#cWindow").val());
+    let timeOffset = parseFloat($("#cOffset").val());
+    let timeSlope  = parseFloat($("#cSlope").val()); //let timeSlope  = 3.673e-4;
+    let minEnergy1 = parseFloat($("#cMinEnergy1").val());
+    let minEnergy2 = parseFloat($("#cMinEnergy2").val());
+    let selectionMethod = $("#cPeak").val();
+    let computerTime = $("#computer").prop("checked") ? true : false;
+
+    // Select the two data sets
+    let iSeries1 = $("#cData1").val();
+    let iSeries2 = $("#cData2").val();
+    let hits1 = dataCont[iSeries1].hits;
+    let hits2 = dataCont[iSeries2].hits;
+    let i1 = 0, i2 = 0, prevTime = 0;
+    let prevCor = timeOffset;
+
+    // Create a new hits container and add to the series
+    let name = "coincidence";
+    let iSeries = addData( name );
+    addColumn( dataCont[iSeries] ); // Add an extra column to the summary table
+    dataCont[iSeries].device = dataCont[iSeries1].device + "_"+dataCont[iSeries2].device;
+    let hits = dataCont[iSeries].hits;
+
+    // Set a status message as large files can take a while
+    $('#statusMsg').html( "Looping over data sets... <i class='fa fa-spinner fa-spin fa-fw'></i>" );
+
+    $("#logFile_n"+iSeries).val( "# Event Event_1 Event_2 Ardn_time[ms] ADC[0-1023] "+
+                                 "SiPM[mV] Time_Offset[ms] Time_Slope[ms/ms] \n" ) ;
+
+    while( i1 < hits1.length && i2 < hits2.length ) {
+
+      let timeCor = prevCor + timeSlope*(hits2[i2].ardTime - prevTime);
+      let dt = hits1[i1].ardTime - (hits2[i2].ardTime - timeCor);
+      if( computerTime ) dt = getTimeDifference( hits1[i1].time, hits2[i2].time );
+
+      // Check if the two hits are in coincidence
+      if( Math.abs( dt ) < timeWindow && 
+          hits1[i1].ampl > minEnergy1 && hits2[i2].ampl > minEnergy2 ) {
+        let dtBest = dt;
+        let i1Best = i1;
+        let i2Best = i2;
+        // Check if next hit is better 
+        if( dt < 0 ) {
+          while( dt < 0 && i1 < hits1.length-1 ) {
+            if( computerTime ) dt = getTimeDifference( hits1[i1+1].time, hits2[i2].time );
+            else dt = hits1[i1+1].ardTime - (hits2[i2].ardTime - timeCor);
+            if( Math.abs(dt) < Math.abs(dtBest) && hits1[i1].ampl > minEnergy1 ) {
+              dtBest = dt;
+              i1Best = i1+1;              
+            }
+            ++i1;
+          }
+          ++i2;
+        } else { // dt > 0
+          while( dt > 0 && i2 < hits2.length-1 ) {             
+            if( computerTime ) dt = getTimeDifference( hits1[i1].time, hits2[i2+1].time );
+            else dt = hits1[i1].ardTime - (hits2[i2+1].ardTime - timeCor);
+            if( Math.abs(dt) < Math.abs(dtBest) && hits2[i2].ampl > minEnergy2 ) {
+              dtBest = dt;
+              i2Best = i2+1;              
+            }
+            ++i2;
+          }
+          ++i1;
+        } // end of check if next hit was better
+        
+        // Update the new time offset
+        timeCor = prevCor + timeSlope*(hits2[i2Best].ardTime - prevTime);          
+        if( hits.length > 0 && !computerTime ) {
+          let firstHit = (hits.length) < 50 ? 0 : hits.length-50; // running average over last 50 hits
+          let thisDt = (timeCor-dtBest-prevCor);
+          let timeDiff = hits2[i2Best].ardTime - hits[firstHit].ardTime ;
+          timeSlope += (thisDt - timeSlope*(hits2[i2Best].ardTime-prevTime )) / timeDiff;
+        }
+        prevCor = timeCor - dtBest;
+        prevTime = hits2[i2Best].ardTime;
+
+        // Copy hit (arbitrary chosing mostly the 2nd one)
+        let newHit = {  time:  hits2[i2Best].time, 
+                       index:  hits.length+1, 
+                     ardTime:  hits2[i2Best].ardTime,
+                         adc:  selectValue( hits1[i1Best].adc, hits2[i2Best].adc, selectionMethod),
+                        ampl:  selectValue( hits1[i1Best].ampl, hits2[i2Best].ampl, selectionMethod),
+                    deadTime:  Math.max(hits1[i1Best].deadTime, hits2[i2Best].deadTime),
+                        temp:  Math.max(hits1[i1Best].temp, hits2[i2Best].temp) };
+        hits.push( newHit );
+        updateAverages( iSeries );
+
+        let line = ""+newHit.index+" "+(i1Best+1)+" "+(i2Best+1)+" "+newHit.adc.toFixed(1)+" "+
+                   newHit.ampl.toFixed(2)+" "+timeCor.toFixed(1)+" "+timeSlope.toFixed(8);
+        $("#logFile_n"+iSeries).val( $("#logFile_n"+iSeries).val() + line + "\n" ) ;
+
+        //console.log("Found overlap: " + hits2[i2Best].index + "  " + timeCor + "  " 
+        //                              + timeSlope + " " + dtBest + "  " + hits2[i2Best].ardTime + "  " + i2 );
+      } else {
+        if( dt < 0 ) ++i1; 
+        else ++i2;
+      }
+    }
+    dataCont[iSeries].header = dataCont[iSeries1].header; // copy the header
+    updateRate( iSeries );
+    addSeriesToCharts( name );
+    updateCharts( iSeries );
+    $('#statusMsg').html( "" );
+
+  });
+
+  function getTimeDifference( time1, time2 ){
+    if( time1 !== "" && time2 !== "" ) {
+      let date1 = new Date( time1 );
+      let date2 = new Date( time2 );
+      return date1.getTime() - date2.getTime();
+    }
+    return 1e6;
+  }
+
+  function selectValue( val1, val2, method ) {
+    if( method == 0 ){
+      return 0.5*(val1 + val2); 
+    } else if( method == 1 ) {
+      return val1;
+    } else if( method == 2 ) {
+      return val2;
+    } else if( method == 3 ) {
+      return Math.min(val1, val2);
+    } else if( method == 4 ) {
+      return Math.max(val1, val2);
+    }
+    return 0;
+  }
+
+
 /* ========== EXPORT SECTION ====================
    Export the data to a txt file in the standard
    CosmicWatch format.
@@ -560,9 +731,10 @@
     
     for( let i=0; i<dataCont[iter].hits.length; ++i ) {
       let hit = dataCont[iter].hits[i];
-      dataString += hit.time + " " + hit.index + " " + hit.ardTime + " " +
-                  hit.adc + " " + hit.ampl +  " " + hit.deadTime + " " +
-                  hit.temp + "\n";
+      if( hit.time !== "" ) dataString += hit.time + " ";
+      dataString += hit.index + " " + hit.ardTime + " " +
+                    hit.adc.toFixed(0) + " " + hit.ampl.toFixed(2) +  " " + 
+                    hit.deadTime + " " + hit.temp + "\n";
     }
     return dataString;       
   }

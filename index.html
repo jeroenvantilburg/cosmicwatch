@@ -40,6 +40,7 @@
     <button id="connect" class="main-button"><i class="fa fa-usb"></i> Connect USB</button>
     <button id="import" class="main-button"><i class="fa fa-upload"></i> Import file</button>
     <input id="input" type="file" accept="text/plain,text/csv,.csv,.tsv,.txt" hidden>
+    <button id="coincidence" class="main-button"><i class="fa fa-plus-circle"></i> Coincidence</button>
     <nobr id="statusMsg"></nobr>
   </div>
   
@@ -84,9 +85,83 @@
     </div>
   </div>
 
- <table id="summaryTable" style="border-spacing: 1px;">
+  <div id="coincidenceModal" class="modal">
+    <div class="modal-content modal-small"> <span class="close">&times;</span>
+      <center>
+        <h3>Coincidence settings</h3>
+        <table>
+          <tr><th colspan="2">Data set 1</th></tr> 
+          <tr title="Select the first data set">
+            <td>Data:</td>
+            <td><select name="cData1" id="cData1"></select></td>
+          </tr>
+          <tr title="Require a minimum energy loss">
+            <td>Minimum peak height [mV]:</td>
+            <td><input id="cMinEnergy1" type="number" value="0"></input></td>
+          </tr>
+        </table>
+        <br/>
+        <table>
+          <tr><th colspan="2">Data set 2</th></tr> 
+          <tr title="Select the second data set">
+            <td>Data:</td>
+            <td><select name="cData2" id="cData2"></select></td>
+          </tr>
+          <tr title="Require a minimum energy loss">
+            <td>Minimum peak height [mV]:</td>
+            <td><input id="cMinEnergy2" type="number" value="0"></input></td>
+          </tr>
+        </table>
+        <br/>
+        <table>
+          <tr><th colspan="2">Coincidence</th></tr> 
+          <tr title="Find coincidences based on either the arduino time or 
+                     the computer time (if available)">
+            <td>Time:</td>
+            <td>
+              <label class="container">Arduino
+                <input type="radio" name="cTime" id="arduino" checked> </input>
+              </label>
+              <label class="container">Computer
+                <input type="radio" name="cTime" id="computer"></input>
+              </label>
+            </td>
+          </tr>
+          <tr title="Maximum time difference for coincidences">
+            <td>Time window [ms]:</td>
+            <td><input id="cWindow" type="number" value="20"></input></td>
+          </tr>
+          <tr title="Initial time difference. Negative means data set 1 started first.">
+            <td>Time offset [ms]:</td>
+            <td><input id="cOffset" type="number" value="0"></input></td>
+          </tr>
+          <tr title="Initial arduino time drift. Usually can be left zero.">
+            <td>Time slope [ms/ms]:</td>
+            <td><input id="cSlope" type="number" value="0"></input></td>
+          </tr>
+          <tr>
+            <td>Save peak height from:</td>
+            <td>
+              <select name="cPeak" id="cPeak">
+                <option value="0">Mean</option>
+                <option value="1">First data set</option>
+                <option value="2">Second data set</option>
+                <option value="3">Smallest value</option>
+                <option value="4">Highest value</option>
+              </select>
+            </td>
+          </tr>
+        </table>
+        <br/>
+        <button id="applyCoincidence">Find coincidences</button></br>
+      </center>
+    </div>
+  </div>
+
+  <div style="overflow-x:auto;">
+  <table id="summaryTable">
     <tr id="data">
-      <td>Data:</td>
+      <td style="width:140px;">Data:</td>
     </tr>
     <tr id="device">
       <td>Device:</td>
@@ -113,9 +188,10 @@
       <td>Mean temperature:</td>
     </tr>
     <tr id="control">
-      <td></td>
+      <td>&nbsp;</td>
     </tr>
   </table>
+  </div>
 
   <br/>
 

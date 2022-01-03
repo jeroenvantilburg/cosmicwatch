@@ -97,7 +97,6 @@ html, body {
   font-size: 1.0em;
 }
 
-
 #summaryTable button {
   width: 35px;
   border-radius: 5px;
@@ -108,6 +107,9 @@ html, body {
   border: 1px solid black;
   margin: 1px 10px;
   border-radius: 7px;
+  border-spacing: 1px;
+  table-layout: fixed;
+  width: fit-content;
 }
 
 #summaryTable td {
@@ -120,12 +122,12 @@ html, body {
 
 
 /* Table in the Settings modal */
-#settingsModal table {
+.modal table {
   border: 1px solid #ddd;
   border-radius: 10px;
 }
 
-#settingsModal table th {
+.modal table th {
   font-weight: bold;
   font-size: 1.1em;
   text-align: left;
@@ -133,11 +135,11 @@ html, body {
   padding-bottom: 2px;
 }
 
-#settingsModal select, #settingsModal input[type="number"] {
-  width:90px;
+.modal select, .modal input[type="number"] {
+  width:150px;
 }
 
-#settingsModal button {
+.modal button {
   background: #068013;
   border: none;
   color: white;
