@@ -477,7 +477,13 @@
         console.error('There was an error opening the serial port:', err);
       }
     } else {
-      // TODO: This is not true for Chrome...
+      alert('Web serial doesn\'t seem to be enabled in your browser.\n'+
+            'Try enabling it by visiting:\n' +
+            '  chrome://flags/#enable-experimental-web-platform-features\n' +
+            '  opera://flags/#enable-experimental-web-platform-features\n' +
+            '  edge://flags/#enable-experimental-web-platform-features\n\n'+
+            'Other browsers are not supported. Check out:\n'+
+            '  https://caniuse.com/web-serial');  
       console.error('Web serial doesn\'t seem to be enabled in your browser.'+
                     ' Try enabling it by visiting:');
       console.error('chrome://flags/#enable-experimental-web-platform-features');
