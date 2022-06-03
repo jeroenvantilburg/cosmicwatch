@@ -870,6 +870,7 @@
 
     chart.series[iSeries].setData(binswithx, true, true);
     chart.series[iSeries].nEvents = hits.length;
+    chart.xAxis[0].update({ min: min, max: max });
   }
 
   // Update charts with the new settings
