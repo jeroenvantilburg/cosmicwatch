@@ -22,8 +22,7 @@ spaceWeatherInterval = 600    # should become every 10 min = 600 s
 weatherLocation = "Almere"
 weatherInterval = 600    # should become every 10 min = 600 s 
 weatherFileName = homeDir + "weather.txt"
-weatherUrl = "https://weerlive.nl/api/weerlive_api_v2.php?key=04a8c7a731&locatie="+weatherLocation
-#weatherUrl = "https://weerlive.nl/api/weerlive_api_v2.php?key=demo&locatie=Amsterdam"
+weatherUrl = "https://weerlive.nl/api/weerlive_api_v2.php?key=demo&locatie=Amsterdam"
 windowWidth = 1200
 windowHeight = 630
 
