@@ -98,29 +98,33 @@
     },
   };
 
-  let amplChart = Highcharts.chart('amplChart', chartOptions);
+  let amplChartOptions = JSON.parse(JSON.stringify(chartOptions)); // deep copy
+  let amplChart = Highcharts.chart('amplChart', amplChartOptions);
   amplChart.nBins = 50;
   amplChart.min = 0;
   amplChart.max = 500;
 
-  chartOptions.title.text ='Peak height (ADC)';
-  chartOptions.xAxis.title.text ='peak height (ADC)';
-  let adcChart = Highcharts.chart('adcChart', chartOptions);
+  let adcChartOptions = JSON.parse(JSON.stringify(chartOptions)); // deep copy
+  adcChartOptions.title.text ='Peak height (ADC)';
+  adcChartOptions.xAxis.title.text ='peak height (ADC)';
+  let adcChart = Highcharts.chart('adcChart', adcChartOptions);
   adcChart.nBins = 100;
   adcChart.min = 0;
   adcChart.max = 1000;
 
-  chartOptions.title.text ='Time between events';
-  chartOptions.xAxis.title.text ='&#916;t (s)';
-  let dtChart = Highcharts.chart('dtChart', chartOptions);
+  let dtChartOptions = JSON.parse(JSON.stringify(chartOptions)); // deep copy
+  dtChartOptions.title.text ='Time between events';
+  dtChartOptions.xAxis.title.text ='&#916;t (s)';
+  let dtChart = Highcharts.chart('dtChart', dtChartOptions);
   dtChart.nBins = 100;
   dtChart.min = 0;
   dtChart.max = 60;
 
-  chartOptions.title.text ='Rate versus time';
-  chartOptions.xAxis.title.text ='time (s)';
-  chartOptions.yAxis.title.text ='rate (Hz)';
-  let rateChart = Highcharts.chart('rateChart', chartOptions);
+  let rateChartOptions = JSON.parse(JSON.stringify(chartOptions)); // deep copy
+  rateChartOptions.title.text ='Rate versus time';
+  rateChartOptions.xAxis.title.text ='time (s)';
+  rateChartOptions.yAxis.title.text ='rate (Hz)';
+  let rateChart = Highcharts.chart('rateChart', rateChartOptions);
   rateChart.nBins = 100;
   rateChart.min = 0;
   rateChart.max = 600;
